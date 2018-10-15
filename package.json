@@ -1,10 +1,11 @@
 {
-  "name": "theo-cli",
+  "name": "theoapp-cli",
   "version": "0.1.0",
   "description": "Theo's CLI",
-  "main": "main.js",
+  "repository": "theoapp/theo-cli",
+  "main": "build/main.js",
   "bin": {
-    "theo": "main.js"
+    "theo": "build/main.js"
   },
   "scripts": {
     "build": "babel -D src -d build",
