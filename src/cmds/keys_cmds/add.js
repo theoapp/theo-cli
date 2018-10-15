@@ -1,4 +1,5 @@
 import { post } from '../../libs/httpUtils';
+import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'add <account> [options]';
 exports.desc = 'Add key to account';
@@ -21,10 +22,8 @@ exports.handler = async argv => {
       }
     }
     const account = await post('/accounts/' + argv.account + '/keys', payload);
-    console.log('+---------------------------+');
-    console.log(JSON.stringify(account, null, 3));
-    console.log('+---------------------------+');
-  } catch (ex) {
-    console.error(ex);
+    outputJson(account);
+  } catch (err) {
+    outputError(err);
   }
 };

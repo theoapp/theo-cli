@@ -1,4 +1,5 @@
 import { put } from '../../libs/httpUtils';
+import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'edit <id> [options]';
 exports.desc = 'Edit account';
@@ -23,10 +24,8 @@ exports.handler = async argv => {
     }
     const payload = { active: argv.enable };
     const account = await put('/accounts/' + argv.id, payload);
-    console.log('+---------------------------+');
-    console.log(JSON.stringify(account, null, 3));
-    console.log('+---------------------------+');
-  } catch (ex) {
-    console.error(ex);
+    outputJson(account);
+  } catch (err) {
+    outputError(err);
   }
 };

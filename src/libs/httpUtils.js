@@ -25,7 +25,9 @@ const execute = (method, path, data, contentType) => {
   }
   return fetch(buildUrl(path), fetchOpts).then(res => {
     if (res.status >= 400) {
-      throw new Error(res.statusText);
+      const error = new Error(res.statusText);
+      error.http_response = res;
+      throw error;
     }
     return res.json();
   });

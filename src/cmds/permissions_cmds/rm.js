@@ -1,4 +1,5 @@
 import { del } from '../../libs/httpUtils';
+import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'rm <account> [options]';
 exports.desc = 'Remove permission from account';
@@ -14,10 +15,8 @@ exports.handler = async argv => {
   try {
     const permissionId = Number(argv.permission);
     const ret = await del('/accounts/' + argv.account + '/permissions/' + permissionId);
-    console.log('+---------------------------+');
-    console.log(JSON.stringify(ret, null, 3));
-    console.log('+---------------------------+');
-  } catch (ex) {
-    console.error(ex);
+    outputJson(ret);
+  } catch (err) {
+    outputError(err);
   }
 };

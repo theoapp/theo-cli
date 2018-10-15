@@ -1,4 +1,5 @@
 import { post } from '../../libs/httpUtils';
+import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'add [options]';
 exports.desc = 'Create account';
@@ -6,21 +7,29 @@ exports.builder = yargs => {
   return yargs
     .option('name', {
       alias: 'n',
-      describe: 'Account name'
+      describe: 'Account name',
+      type: 'string'
     })
     .option('email', {
       alias: 'e',
-      describe: 'Account email'
+      describe: 'Account email',
+      demand: true,
+      type: 'string'
     })
     .option('key', {
       alias: 'k',
-      describe: 'Account public key (accept multiple key)'
+      describe: 'Account public key (accept multiple key)',
+      type: 'string'
     })
     .demandOption(['name', 'email']);
 };
 exports.handler = async argv => {
   try {
     const { email, name } = argv;
+    if (!email || !name) {
+      console.error('email and name are required');
+      return;
+    }
     const payload = { email, name };
     if (argv.key) {
       if (typeof argv.key === 'string') {
@@ -30,10 +39,8 @@ exports.handler = async argv => {
       }
     }
     const account = await post('/accounts', payload);
-    console.log('+---------------------------+');
-    console.log(JSON.stringify(account, null, 3));
-    console.log('+---------------------------+');
-  } catch (ex) {
-    console.error(ex);
+    outputJson(account);
+  } catch (err) {
+    outputError(err);
   }
 };

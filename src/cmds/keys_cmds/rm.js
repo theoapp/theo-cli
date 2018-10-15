@@ -1,4 +1,5 @@
 import { del } from '../../libs/httpUtils';
+import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'rm <account> [options]';
 exports.desc = 'Remove key from account';
@@ -14,10 +15,8 @@ exports.handler = async argv => {
   try {
     const keyId = Number(argv.key);
     const account = await del('/accounts/' + argv.account + '/keys/' + keyId);
-    console.log('+---------------------------+');
-    console.log(JSON.stringify(account, null, 3));
-    console.log('+---------------------------+');
-  } catch (ex) {
-    console.error(ex);
+    outputJson(account);
+  } catch (err) {
+    outputError(err);
   }
 };
