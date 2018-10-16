@@ -8,6 +8,7 @@ exports.builder = yargs => {
     .option('name', {
       alias: 'n',
       describe: 'Account name',
+      demand: true,
       type: 'string'
     })
     .option('email', {
