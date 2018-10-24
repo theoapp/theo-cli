@@ -1,3 +1,5 @@
+import ApiError from './apierror';
+
 const fetch = require('node-fetch');
 
 const getAuthHeader = headers => {
@@ -8,7 +10,7 @@ const buildUrl = path => {
   return process.env.THEO_URL + path;
 };
 
-const execute = (method, path, data, contentType) => {
+const execute = async (method, path, data, contentType) => {
   const headers = {};
   getAuthHeader(headers);
   const fetchOpts = {
@@ -23,14 +25,58 @@ const execute = (method, path, data, contentType) => {
     headers['Content-Type'] = contentType;
     fetchOpts.body = data;
   }
-  return fetch(buildUrl(path), fetchOpts).then(res => {
-    if (res.status >= 400) {
-      const error = new Error(res.statusText);
-      error.http_response = res;
-      throw error;
+  let response;
+  try {
+    response = await fetch(buildUrl(path), fetchOpts);
+  } catch (ex) {
+    // Low level error: timeouts
+    console.error('Passo di qui', ex.detail);
+    throw ex;
+  }
+  if (response) {
+    if (response.status === 204) {
+      return true;
     }
-    return res.json();
-  });
+    const resContentLength = response.headers.get('content-length');
+    const retContentType = response.headers.get('content-type');
+    if (response.status >= 500) {
+      // Server's fault.. just raise the error
+      if (resContentLength > 0) {
+        const json = await _parseJsonBody(retContentType, response);
+        if (json === false) {
+          // generic error
+          throw ApiError.getError(response.status, response.message, response);
+        }
+        throw ApiError.getError(json.error, json.message, response);
+      }
+      throw ApiError.getError(response.status, response.message, response);
+    }
+    if (response.status >= 400) {
+      // Our fault..
+      // Session expired?
+      if (response.status === 401) {
+        // Force logout..
+        // But I need dispatch
+      }
+      if (resContentLength > 0) {
+        const json = await _parseJsonBody(retContentType, response);
+        if (json === false) {
+          // generic error
+          throw ApiError.getError(response.status, response.message, response);
+        }
+        throw ApiError.getError(json.reason, json.data, response);
+      }
+      throw ApiError.getError(response.status, response.message, response);
+    }
+    if (resContentLength === 0) {
+      return true;
+    }
+    const json = await _parseJsonBody(retContentType, response);
+    if (json === false) {
+      return response.text();
+    }
+    return json;
+  }
 };
 
 export const get = path => {
@@ -48,3 +94,15 @@ export const put = (path, data, contentType) => {
 export const post = (path, data, contentType) => {
   return execute('POST', path, data, contentType || 'application/json');
 };
+
+async function _parseJsonBody(contentType, response) {
+  let ret = false;
+  if (contentType.includes('application/json')) {
+    try {
+      ret = await response.json();
+    } catch (e) {
+      console.log('error while parsing json response...', e.message);
+    }
+  }
+  return ret;
+}
