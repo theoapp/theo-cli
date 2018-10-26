@@ -30,7 +30,6 @@ const execute = async (method, path, data, contentType) => {
     response = await fetch(buildUrl(path), fetchOpts);
   } catch (ex) {
     // Low level error: timeouts
-    console.error('Passo di qui', ex.detail);
     throw ex;
   }
   if (response) {
