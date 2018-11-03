@@ -8,12 +8,12 @@ exports.builder = yargs => {
     .option('account', {
       alias: 'a',
       describe: 'Account id',
-      type: 'number'
+      type: 'string'
     })
     .option('group', {
       alias: 'g',
       describe: 'Group id',
-      type: 'number'
+      type: 'string'
     })
     .option('host', {
       alias: 'h',

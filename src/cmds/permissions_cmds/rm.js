@@ -2,7 +2,7 @@ import { del } from '../../libs/httpUtils';
 import { outputError, outputJson } from '../../libs/stringUtils';
 
 exports.command = 'rm <account> [options]';
-exports.desc = 'Remove permission from account';
+exports.desc = 'Remove permission from account or group';
 exports.builder = yargs => {
   return yargs
     .option('permission', {

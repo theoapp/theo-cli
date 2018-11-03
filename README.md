@@ -9,8 +9,10 @@ CLI app to manage [Theo server](https://github.com/theoapp/theo-node)
 - [Install](#install)
 - [Usage](#usage)
   - [Accounts](#accounts)
+  - [Groups](#groups)
   - [SSH Keys](#ssh-keys)
   - [Permissions](#permissions)
+  - [Authorized Keys](#authorized-keys)
 - [Examples](#examples)
 
 #### Install
@@ -56,6 +58,7 @@ Commands:
   main.js accounts list                 List accounts
   main.js accounts search               Search accounts
 ```
+
 * List
 
 ```
@@ -113,10 +116,10 @@ Options:
    --key, -k    Account public key (accept multiple keys)                [string]
  ```
  
- * Edit
+ * Change status
  
  ```
- theo accounts edit <id> [options]
+ theo accounts mod <id> [options]
  
  Edit account
  
@@ -139,6 +142,115 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
+* Edit
+
+```
+theo accounts edit <id> [options] <group>
+
+Edit account
+
+Options:
+  --version  Show version number                                       [boolean]
+  --help     Show help                                                 [boolean]
+  --add, -a  Add account to group                                      [boolean]
+  --rm, -d   Remove account from group                                 [boolean]
+```
+
+##### Groups
+
+```
+theo groups <command>
+
+Manage accounts
+
+Manage groups
+
+Commands:
+  main.js groups add [options]        Create group
+  main.js groups rm <id>              Remove group
+  main.js groups edit <id> [options]  Edit group
+  main.js groups get <id>             Get group
+  main.js groups list                 List groups
+
+```
+
+* List
+
+```
+theo groups list
+
+List groups
+
+Options:
+  --version     Show version number                                    [boolean]
+  --help        Show help                                              [boolean]
+  --limit, -l   Number of groups to retrieve                            [number]
+  --offset, -o  Offset of the query                                     [number]
+```
+
+* Get
+
+```
+theo groups get <id>
+     
+Get group
+     
+Options:
+   --version  Show version number                                       [boolean]
+   --help     Show help                                                 [boolean]
+```
+
+* Add
+
+```
+theo groups add [options]
+
+Create group
+
+Options:
+  --version   Show version number                                      [boolean]
+  --help      Show help                                                [boolean]
+  --name, -n  Group name                                     [string] [required]
+```
+
+* Change status
+
+```
+theo groups mod <id> [options]
+
+Edit group
+
+Options:
+  --version     Show version number                                    [boolean]
+  --help        Show help                                              [boolean]
+  --action, -a  Action: enable|disable                       [string] [required]
+```
+
+* Remove
+
+```
+theo groups rm <id>
+     
+Remove group
+
+Options:
+  --version  Show version number                                       [boolean]
+  --help     Show help                                                 [boolean]
+```
+
+* Edit
+
+```
+theo groups edit <id> [options] <account..>
+
+Add/remove account(s) to/from group
+
+Options:
+  --version  Show version number                                       [boolean]
+  --help     Show help                                                 [boolean]
+  --add, -a  Add accounts to group                                     [boolean]
+  --rm, -d   Remove accounts from group                                [boolean]
+```
 ##### SSH Keys
 
 ```
@@ -208,15 +320,17 @@ Commands:
 * Add
 
 ```
-theo permissions add <account> [options]
+theo permissions add [options]
      
-     Add permission to account
+     Add permission to account or group
      
      Options:
-       --version   Show version number                                      [boolean]
-       --help      Show help                                                [boolean]
-       --host, -h  Host name                                               [required]
-       --user, -u  User name                                               [required]
+       --version      Show version number                                   [boolean]
+       --help         Show help                                             [boolean]
+       --account, -a  Account id                                             [string]
+       --group, -g    Group id                                               [string]
+       --host, -h     Host name                                   [string] [required]
+       --user, -u     User name                                   [string] [required]
 ```
 
 * Remove 
@@ -230,6 +344,22 @@ theo permissions rm <account> [options]
        --version         Show version number                                [boolean]
        --help            Show help                                          [boolean]
        --permission, -p  Permission ID                                     [required]
+```
+
+##### Authorized Keys
+
+* Fetch authorized keys
+
+```
+theo authorized_keys [options]
+     
+     Test authorized_keys
+     
+     Options:
+       --version   Show version number                                      [boolean]
+       --help      Show help                                                [boolean]
+       --host, -h  Host name                                      [string] [required]
+       --user, -u  User name                                      [string] [required]
 ```
 
 #### Examples
@@ -258,7 +388,7 @@ To add a new key to account _john.doe_ (Id 1):
 
 ```
 $ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
-    keys add 1 \
+    keys add john.doe@sample.com \
     -k "ssh-rsa AAAAB3N[.....]lS03D7xUw== john.doe@localhost"
 
   +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -277,7 +407,7 @@ To import `John Doe`'s public keys from his github account (which is `jdoe80`):
 
 ```
 THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
-    keys import 1 -s github -u jdoe80
+    keys import john.doe@sample.com -s github -u jdoe80
     
     
 +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -301,7 +431,8 @@ To add a new permission to _john.doe_ to let him login as user `ubuntu` to host 
 
 ```
 THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
-    permissions add 1 \
+    permissions add \
+    --account john.doe@sample.com \
     --host srv-sample-01 \
     --user ubuntu
 
@@ -316,8 +447,33 @@ To give permission to login as user `ubuntu` on all the servers named `test-xxxx
  
 ```
 THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
-    permissions add 1 \
+    permissions add \
+    --account john.doe@sample.com \
     --host "test-%" \
     --user ubuntu
+```
+
+To create a new group `developers`
+
+```
+THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    groups add --name developers
+```
+
+To add `john doe` to `developer` group
+
+```
+THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    groups edit developers --add john.doe@sample.com
+```
+
+To grant access as user `deploy` on server `dev01` to group `developers`:
+ 
+```
+THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    permissions add \
+    --group developers \
+    --host "dev01" \
+    --user deploy
 ```
 
