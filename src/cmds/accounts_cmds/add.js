@@ -17,11 +17,6 @@ exports.builder = yargs => {
       demand: true,
       type: 'string'
     })
-    .option('key', {
-      alias: 'k',
-      describe: 'Account public key (accept multiple key)',
-      type: 'string'
-    })
     .demandOption(['name', 'email']);
 };
 exports.handler = async argv => {
@@ -31,15 +26,7 @@ exports.handler = async argv => {
       console.error('email and name are required');
       return;
     }
-    const payload = { email, name };
-    if (argv.key) {
-      if (typeof argv.key === 'string') {
-        payload.keys = [argv.key];
-      } else {
-        payload.keys = argv.key;
-      }
-    }
-    const account = await post('/accounts', payload);
+    const account = await post('/accounts', { email, name });
     outputJson(account);
   } catch (err) {
     outputError(err);

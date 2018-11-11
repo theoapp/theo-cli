@@ -10,12 +10,14 @@ const buildUrl = path => {
   return process.env.THEO_URL + path;
 };
 
-const execute = async (method, path, data, contentType) => {
-  const headers = {};
+const execute = async (method, path, data, contentType, headers) => {
+  if (!headers) {
+    headers = {};
+  }
   getAuthHeader(headers);
   const fetchOpts = {
     method,
-    headers: headers
+    headers
   };
   const dataType = typeof data;
   if (dataType !== 'undefined') {
@@ -78,8 +80,8 @@ const execute = async (method, path, data, contentType) => {
   }
 };
 
-export const get = path => {
-  return execute('GET', path);
+export const get = (path, headers) => {
+  return execute('GET', path, undefined, undefined, headers);
 };
 
 export const del = (path, data, contentType) => {

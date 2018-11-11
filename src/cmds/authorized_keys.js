@@ -1,5 +1,5 @@
 import { get } from '../libs/httpUtils';
-import { outputError } from '../libs/stringUtils';
+import { outputError, outputJson } from '../libs/stringUtils';
 
 exports.command = 'authorized_keys [options]';
 exports.desc = 'Test authorized_keys';
@@ -17,12 +17,25 @@ exports.builder = yargs => {
       demand: true,
       type: 'string'
     })
+    .option('json', {
+      alias: 'j',
+      describe: 'Return json array',
+      demand: false,
+      boolean: true
+    })
     .demandOption(['host', 'user']);
 };
 exports.handler = async argv => {
   try {
-    const authorized_keys = await get('/authorized_keys/' + argv.host + '/' + argv.user);
-    console.log(authorized_keys);
+    const authorized_keys = await get(
+      '/authorized_keys/' + argv.host + '/' + argv.user,
+      argv.json ? { Accept: 'application/json' } : undefined
+    );
+    if (argv.json) {
+      outputJson(authorized_keys);
+    } else {
+      console.log(authorized_keys);
+    }
   } catch (err) {
     outputError(err);
   }

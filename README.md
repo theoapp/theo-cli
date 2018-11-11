@@ -113,7 +113,6 @@ Options:
    --help       Show help                                               [boolean]
    --name, -n   Account name                                  [string] [required]
    --email, -e  Account email                                 [string] [required]
-   --key, -k    Account public key (accept multiple keys)                [string]
  ```
  
  * Change status
@@ -276,6 +275,8 @@ Options:
   --version  Show version number                                       [boolean]
   --help     Show help                                                 [boolean]
   --key, -k  Public ssh key                                           [required]
+  --sign, -s        sign Public ssh key with private key provided       [string]
+  --passphrase, -p  private key passhrase                               [string]
 ```
 
 * Import 
@@ -397,6 +398,28 @@ $ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
      "keys": [
         {
            "key": "ssh-rsa AAAAB3N[.....]lS03D7xUw== john.doe@localhost"
+        }
+     ]
+  }
+  +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+```
+
+To add a new key with signature to account _john.doe_ (Id 1):
+
+```
+$ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    keys add john.doe@sample.com \
+    -k "ssh-rsa AAAAB3N[.....]lS03D7xUw== john.doe@localhost"
+    -s /path/to/private.pem
+    -p abcde
+
+  +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+  {
+     "account_id": "1",
+     "keys": [
+        {
+           "key": "ssh-rsa AAAAB3N[.....]lS03D7xUw== john.doe@localhost",
+           "signature": "1f01a031462da939ded812c9371e[...]b9c18ef6"
         }
      ]
   }
