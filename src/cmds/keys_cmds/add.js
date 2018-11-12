@@ -38,7 +38,7 @@ exports.handler = async argv => {
         private_key = await readFile(process.env.THEO_PRIVATE_KEY);
       } catch (e) {
         outputError(e);
-        process.exit(1);
+        process.exit(11);
       }
     }
     let public_keys;
@@ -55,13 +55,25 @@ exports.handler = async argv => {
     }
     if (argv.sign) {
       payload.keys = [];
-      const signer = new Signer(private_key, passphrase);
+
+      let signer;
+      try {
+        signer = new Signer(private_key, passphrase);
+      } catch (err) {
+        outputError(err);
+        process.exit(12);
+      }
       public_keys.forEach(public_key => {
-        const signature = signer.sign(public_key);
-        payload.keys.push({
-          key: public_key,
-          signature
-        });
+        try {
+          const signature = signer.sign(public_key);
+          payload.keys.push({
+            key: public_key,
+            signature
+          });
+        } catch (err) {
+          outputError(err);
+          process.exit(13);
+        }
       });
     } else {
       payload.keys = public_keys;
