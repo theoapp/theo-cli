@@ -6,34 +6,20 @@ import Signer from '../../libs/rsaUtils';
 exports.command = 'add <account> [options]';
 exports.desc = 'Add key to account';
 exports.builder = yargs => {
-  return (
-    yargs
-      .option('key', {
-        alias: 'k',
-        describe: 'Public ssh key',
-        type: 'string',
-        demand: true
-      })
-      .option('sign', {
-        alias: 's',
-        describe: 'sign Public ssh key with private key provided',
-        type: 'string'
-      })
-      .option('passphrase', {
-        alias: 'p',
-        describe: 'private key passhrase',
-        type: 'string'
-      })
-      /*
-      TODO read passphrase from stdin
-      .option('passphrase-stdin', {
-        alias: 'i',
-        describe: 'Read private key passhrase from stdin',
-        boolean: true
-      })
-      */
-      .demandOption(['key'])
-  );
+  return yargs
+    .option('key', {
+      alias: 'k',
+      describe: 'Public ssh key',
+      type: 'string',
+      demand: true
+    })
+    .option('sign', {
+      alias: 's',
+      describe:
+        'sign Public ssh key with private key. (Needs THEO_PRIVATE_KEY and THEO_PRIVATE_KEY_PASSPHRASE env variable)',
+      boolean: true
+    })
+    .demandOption(['key']);
 };
 
 exports.handler = async argv => {
@@ -42,11 +28,14 @@ exports.handler = async argv => {
     let private_key;
     let passphrase;
     if (argv.sign) {
-      if (argv.passphrase) {
-        passphrase = argv.passphrase;
+      if (!process.env.THEO_PRIVATE_KEY) {
+        const e = new Error('Asked to sign but no THEO_PRIVATE_KEY provided');
+        outputError(e);
+        process.exit(1);
       }
+      passphrase = process.env.THEO_PRIVATE_KEY_PASSPHRASE || false;
       try {
-        private_key = await readFile(argv.sign);
+        private_key = await readFile(process.env.THEO_PRIVATE_KEY);
       } catch (e) {
         outputError(e);
         process.exit(1);
@@ -60,7 +49,9 @@ exports.handler = async argv => {
         public_keys = argv.key;
       }
     } else {
-      throw new Error('At least specify 1 public ssh key');
+      const e = new Error('At least specify 1 public ssh key');
+      outputError(e);
+      process.exit(1);
     }
     if (argv.sign) {
       payload.keys = [];

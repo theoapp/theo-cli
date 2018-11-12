@@ -406,12 +406,14 @@ $ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
 
 To add a new key with signature to account _john.doe_ (Id 1):
 
+
 ```
-$ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+$ THEO_PRIVATE_KEY="/home/macno/sign/private.pem" \
+    THEO_PRIVATE_KEY_PASSPHRASE="abcd" \
+    THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
     keys add john.doe@sample.com \
     -k "ssh-rsa AAAAB3N[.....]lS03D7xUw== john.doe@localhost"
-    -s /path/to/private.pem
-    -p abcde
+    -s
 
   +--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
   {
