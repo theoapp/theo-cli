@@ -347,6 +347,20 @@ theo permissions rm <account> [options]
        --permission, -p  Permission ID                                     [required]
 ```
 
+* Search
+
+```
+theo permissions search [options]
+     
+     Check accounts by permissions
+     
+     Options:
+       --version   Show version number                                      [boolean]
+       --help      Show help                                                [boolean]
+       --host, -h  Host name                                      [string] [required]
+       --user, -u  User name                                      [string] [required]
+```
+
 ##### Authorized Keys
 
 * Fetch authorized keys
@@ -502,3 +516,11 @@ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
     --user deploy
 ```
 
+To check who has access to server `dev01` with user `ubuntu`:
+
+```
+THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    permissions search \
+    --host dev01
+    --user ubuntu
+```
