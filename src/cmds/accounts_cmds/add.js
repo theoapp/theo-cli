@@ -17,6 +17,11 @@ exports.builder = yargs => {
       demand: true,
       type: 'string'
     })
+    .option('expire', {
+      alias: 'x',
+      describe: 'Set account expiration (0 no expire). Use ISO 8601 date format (ex 2018-10-31)',
+      type: 'string'
+    })
     .demandOption(['name', 'email']);
 };
 exports.handler = async argv => {
@@ -26,7 +31,18 @@ exports.handler = async argv => {
       console.error('email and name are required');
       return;
     }
-    const account = await post('/accounts', { email, name });
+    const payload = {
+      email,
+      name
+    };
+    if (argv.expire !== undefined) {
+      if (argv.expire === '0') {
+        payload['expire_at'] = 0;
+      } else {
+        payload['expire_at'] = argv.expire;
+      }
+    }
+    const account = await post('/accounts', payload);
     outputJson(account);
   } catch (err) {
     outputError(err);

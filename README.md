@@ -113,9 +113,11 @@ Options:
    --help       Show help                                               [boolean]
    --name, -n   Account name                                  [string] [required]
    --email, -e  Account email                                 [string] [required]
+   --expire, -x  Set account expiration (0 no expire). Use ISO 8601 date format
+                   (ex 2018-10-31)                                     [string]
  ```
  
- * Change status
+ * Change status/expiration date
  
  ```
  theo accounts mod <id> [options]
@@ -127,6 +129,9 @@ Options:
    --help         Show help                                             [boolean]
    --enable, -e   Enable Account                                        [boolean]
    --disable, -d  Disable Account                                       [boolean]
+  --expire, -x  Set account expiration (0 no expire). Use ISO 8601 date format
+                  (ex 2018-10-31)                                       [string]
+
  ```
 
 * Remove
@@ -392,6 +397,28 @@ $ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
    "id": 1,
    "name": "john.doe",
    "email": "john.doe@sample.com",
+   "active": 1,
+   "public_keys": [],
+   "permissions": []
+}
++---------------------------------+
+```
+
+To create a new account with name _Gary Cooper_ and email _gary.cooper@sample.com_ that will expire on Dec, 31 2018:
+
+```
+$ THEO_URL=http://localhost:9100 THEO_TOKEN=12345 theo \
+    accounts add \
+    --name john.doe \
+    --email john.doe@sample.com \
+    --expire "2018-12-31"
+
++---------------------------------+
+{
+   "id": 1,
+   "name": "john.doe",
+   "email": "john.doe@sample.com",
+   "expire_at": 1546214400000,
    "active": 1,
    "public_keys": [],
    "permissions": []
