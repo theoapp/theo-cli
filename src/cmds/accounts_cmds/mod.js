@@ -29,7 +29,7 @@ exports.handler = async argv => {
     }
     const payload = {};
     if (argv.enable || argv.disable) {
-      payload['active'] = argv.enable;
+      payload['active'] = argv.enable || false;
     }
     if (argv.expire !== undefined) {
       if (argv.expire === '0') {
@@ -42,7 +42,6 @@ exports.handler = async argv => {
       console.error('Nothing to do...');
       return;
     }
-    console.log(payload);
     const account = await put('/accounts/' + argv.id, payload);
     outputJson(account);
   } catch (err) {
