@@ -32,20 +32,31 @@ exports.handler = async argv => {
       if (typeof account === 'string') {
         ret = await post('/groups/' + id, { id: account });
       } else {
-        ret = await post('/groups/' + id, { ids: account });
+        if (account.length === 1) {
+          ret = await post('/groups/' + id, { id: account[0] });
+        } else {
+          ret = await post('/groups/' + id, { ids: account });
+        }
       }
     } else {
       if (typeof account === 'string') {
         ret = await del('/groups/' + id + '/' + account);
       } else {
-        ret = [];
-        for (let i = 0; i < account.length; i++) {
-          const r = await del('/groups/' + id + '/' + account[i]);
-          ret.push(r);
+        if (account.length === 1) {
+          ret = await del('/groups/' + id + '/' + account[0]);
+        } else {
+          ret = [];
+          for (let i = 0; i < account.length; i++) {
+            try {
+              const r = await del('/groups/' + id + '/' + account[i]);
+              ret.push(r);
+            } catch (e) {
+              ret.push({ error: e.message });
+            }
+          }
         }
       }
     }
-
     outputJson(ret);
   } catch (err) {
     outputError(err).catch(err => console.error('Failed to retreive error', err));
