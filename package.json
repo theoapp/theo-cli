@@ -1,6 +1,6 @@
 {
   "name": "theoapp-cli",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "description": "Theo's CLI",
   "repository": "theoapp/theo-cli",
   "main": "build/main.js",
