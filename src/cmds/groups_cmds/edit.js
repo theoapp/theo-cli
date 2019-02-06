@@ -30,12 +30,12 @@ exports.handler = async argv => {
     let ret;
     if (add) {
       if (typeof account === 'string') {
-        ret = await post('/groups/' + id, { id: account });
+        ret = await post('/groups/' + id + '/account', { id: account });
       } else {
         if (account.length === 1) {
-          ret = await post('/groups/' + id, { id: account[0] });
+          ret = await post('/groups/' + id + '/account', { id: account[0] });
         } else {
-          ret = await post('/groups/' + id, { ids: account });
+          ret = await post('/groups/' + id + '/accounts', { ids: account });
         }
       }
     } else {
