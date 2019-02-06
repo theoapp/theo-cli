@@ -1,9 +1,11 @@
 import { get } from '../libs/httpUtils';
 import { outputError } from '../libs/stringUtils';
+import { checkEnv } from '../libs/appUtils';
 
 exports.command = 'exp';
 exports.desc = 'Export db';
 exports.builder = yargs => {
+  checkEnv();
   return yargs.option('pretty', {
     alias: 'p',
     describe: 'Pretty print dump',

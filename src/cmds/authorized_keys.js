@@ -1,9 +1,11 @@
 import { get } from '../libs/httpUtils';
 import { outputError, outputJson } from '../libs/stringUtils';
+import { checkEnv } from '../libs/appUtils';
 
 exports.command = 'authorized_keys [options]';
 exports.desc = 'Test authorized_keys';
 exports.builder = yargs => {
+  checkEnv();
   return yargs
     .option('host', {
       alias: 'h',
