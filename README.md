@@ -35,8 +35,8 @@ THEO_TOKEN=your_secret_admin_token
 
 ```
   $PWD/.env
-  $HOME/.theo-cli/env
-  /etc/theo-cli/env
+  $HOME/.theo/env
+  /etc/theo/env
 ```
 
 
