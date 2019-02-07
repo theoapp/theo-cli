@@ -6,8 +6,9 @@
 .idea
 .npmignore
 .npmrc
+.travis.yml
 env.sample
 node_modules
 package-lock.json
-package.json
+*.md
 src
