@@ -1,4 +1,5 @@
 import ApiError from './apierror';
+import packageJson from '../../package';
 
 const fetch = require('node-fetch');
 
@@ -13,6 +14,9 @@ const buildUrl = path => {
 const execute = async (method, path, data, contentType, headers) => {
   if (!headers) {
     headers = {};
+  }
+  if (!headers['User-Agent']) {
+    headers['User-Agent'] = packageJson.name + '/' + packageJson.version;
   }
   getAuthHeader(headers);
   const fetchOpts = {
