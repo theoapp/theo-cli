@@ -33,17 +33,57 @@ You can do it in 2 ways:
  * Adding them to the config file (the first file found will be used):
    ```
     $PWD/.env
-    $HOME/.theo-cli/env
-    /etc/theo-cli/env
+    $HOME/.theo/env
+    /etc/theo/env
     ```
 `THEO_PRIVATE_KEY` must point to your private key (use full path).  
 `THEO_PRIVATE_KEY_PASSPHRASE` is the pass phrase to unlock the private key.
 
+Since theo-cli 0.9.0 it's possible to pass private key path and passphrase as arguments. 
+
+```
+  --certificate, -c       Path to private key                           [string]
+  --passphrase, -p        passphrase for private key                    [string]
+  --passphrase-stdin, -i  read passphrase for private key from stdin   [boolean]
+```
 
 ### Usage
 
 When adding a new authorized key to a user, add the `--sign` flag
 
 ```
-theo keys add john.doe@example.com --sign --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
+theo keys add john.doe@example.com \
+    --sign \
+    --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
+```
+
+```
+theo keys add john.doe@example.com \
+    --passphrase-stdin \
+    --sign \
+    --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
+```
+
+
+```
+theo keys add john.doe@example.com \
+    --passphrase your-passphrase \
+    --sign \
+    --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
+```
+
+```
+theo keys add john.doe@example.com \
+    --passphrase-stdin \
+    --certificate $HOME/private/theo-private.pem
+    --sign \
+    --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
+```
+
+```
+theo keys add john.doe@example.com \
+    --passphrase your-passphrase \
+    --certificate $HOME/private/theo-private.pem
+    --sign \
+    --key "ssh-rsa AAAAB3NzaC1yc2E[...]7xUw== john.doe@laptop"
 ```

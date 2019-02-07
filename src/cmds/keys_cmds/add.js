@@ -2,6 +2,31 @@ import { post } from '../../libs/httpUtils';
 import { outputError, outputJson } from '../../libs/stringUtils';
 import { readFile } from '../../libs/fileUtils';
 import Signer from '../../libs/rsaUtils';
+import readline from 'readline';
+import { Writable } from 'stream';
+
+const readPassphrase = () => {
+  const mutableStdout = new Writable({
+    write: function(chunk, encoding, callback) {
+      if (!this.muted) process.stdout.write(chunk, encoding);
+      callback();
+    }
+  });
+  return new Promise((resolve, reject) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: mutableStdout,
+      terminal: true
+    });
+
+    mutableStdout.muted = false;
+    rl.question('Passphrase: ', answer => {
+      rl.close();
+      resolve(answer);
+    });
+    mutableStdout.muted = true;
+  });
+};
 
 exports.command = 'add <account> [options]';
 exports.desc = 'Add key to account';
@@ -16,7 +41,22 @@ exports.builder = yargs => {
     .option('sign', {
       alias: 's',
       describe:
-        'sign Public ssh key with private key. (Needs THEO_PRIVATE_KEY and THEO_PRIVATE_KEY_PASSPHRASE env variable)',
+        'sign Public ssh key with private key. (Needs THEO_PRIVATE_KEY and THEO_PRIVATE_KEY_PASSPHRASE env variable or -c and -p / -i)',
+      boolean: true
+    })
+    .option('certificate', {
+      alias: 'c',
+      describe: 'Path to private key',
+      type: 'string'
+    })
+    .option('passphrase', {
+      alias: 'p',
+      describe: 'passphrase for private key',
+      type: 'string'
+    })
+    .option('passphrase-stdin', {
+      alias: 'i',
+      describe: 'read passphrase for private key from stdin',
       boolean: true
     })
     .demandOption(['key']);
@@ -26,16 +66,28 @@ exports.handler = async argv => {
   try {
     const payload = {};
     let private_key;
+    let private_key_path;
     let passphrase;
     if (argv.sign) {
-      if (!process.env.THEO_PRIVATE_KEY) {
-        const e = new Error('Asked to sign but no THEO_PRIVATE_KEY provided');
-        outputError(e);
-        process.exit(1);
+      if (argv.certificate) {
+        private_key_path = argv.certificate;
+      } else {
+        if (!process.env.THEO_PRIVATE_KEY) {
+          const e = new Error('Asked to sign but no -c or THEO_PRIVATE_KEY env provided');
+          outputError(e);
+          process.exit(1);
+        }
+        private_key_path = process.env.THEO_PRIVATE_KEY;
       }
-      passphrase = process.env.THEO_PRIVATE_KEY_PASSPHRASE || false;
+      if (argv.passphrase) {
+        passphrase = argv.passphrase;
+      } else if (argv.passphraseStdin) {
+        passphrase = await readPassphrase();
+      } else {
+        passphrase = process.env.THEO_PRIVATE_KEY_PASSPHRASE || false;
+      }
       try {
-        private_key = await readFile(process.env.THEO_PRIVATE_KEY);
+        private_key = await readFile(private_key_path);
       } catch (e) {
         outputError(e);
         process.exit(11);
@@ -71,7 +123,7 @@ exports.handler = async argv => {
             signature
           });
         } catch (err) {
-          outputError(err);
+          outputError({ reason: 'Unable to sign, is the passphrase correct?', error: err });
           process.exit(13);
         }
       });
