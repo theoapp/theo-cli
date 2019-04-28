@@ -9,9 +9,10 @@ class Signer {
   }
 
   sign(data) {
-    const sign = crypto.createSign('SHA256');
-    sign.update(data);
-    return sign.sign(this.private_key, 'hex');
+    return crypto
+      .createSign('SHA256')
+      .update(data)
+      .sign(this.private_key, 'hex');
   }
 }
 
