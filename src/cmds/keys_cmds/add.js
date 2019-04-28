@@ -4,6 +4,7 @@ import { readFile } from '../../libs/fileUtils';
 import Signer from '../../libs/rsaUtils';
 import readline from 'readline';
 import { Writable } from 'stream';
+import sshpk from 'sshpk';
 
 const readPassphrase = () => {
   const mutableStdout = new Writable({
@@ -26,6 +27,40 @@ const readPassphrase = () => {
     });
     mutableStdout.muted = true;
   });
+};
+
+const signSSHPublicKeys = (public_keys, private_key, passphrase) => {
+  const keys = [];
+  let signer;
+  try {
+    signer = new Signer(private_key, passphrase);
+  } catch (err) {
+    outputError(err);
+    process.exit(12);
+  }
+  public_keys.forEach(public_key => {
+    try {
+      const signature = signer.sign(public_key);
+      keys.push({
+        key: public_key,
+        signature
+      });
+    } catch (err) {
+      outputError({ reason: 'Unable to sign, is the passphrase correct?', error: err });
+      process.exit(13);
+    }
+  });
+  return keys;
+};
+
+const checkSSHPublicKeys = public_keys => {
+  for (let i = 0; i < public_keys.length; i++) {
+    checkSSHPublicKey(public_keys[i]);
+  }
+};
+
+const checkSSHPublicKey = keyPub => {
+  sshpk.parseKey(keyPub, 'ssh');
 };
 
 exports.command = 'add <account> [options]';
@@ -130,27 +165,15 @@ exports.handler = async argv => {
       outputError(e);
       process.exit(1);
     }
+    try {
+      checkSSHPublicKeys(public_keys);
+    } catch (e) {
+      outputError(e);
+      process.exit(1);
+    }
+
     if (argv.sign) {
-      payload.keys = [];
-      let signer;
-      try {
-        signer = new Signer(private_key, passphrase);
-      } catch (err) {
-        outputError(err);
-        process.exit(12);
-      }
-      public_keys.forEach(public_key => {
-        try {
-          const signature = signer.sign(public_key);
-          payload.keys.push({
-            key: public_key,
-            signature
-          });
-        } catch (err) {
-          outputError({ reason: 'Unable to sign, is the passphrase correct?', error: err });
-          process.exit(13);
-        }
-      });
+      payload.keys = signSSHPublicKeys(public_keys, private_key, passphrase);
     } else if (argv.signature) {
       payload.keys = [];
       public_keys.forEach((public_key, i) => {
@@ -162,7 +185,6 @@ exports.handler = async argv => {
     } else {
       payload.keys = public_keys;
     }
-    console.log(payload);
     const account = await post('/accounts/' + argv.account + '/keys', payload);
     outputJson(account);
   } catch (err) {
