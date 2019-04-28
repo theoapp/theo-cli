@@ -41,7 +41,7 @@ exports.builder = yargs => {
     .option('sign', {
       alias: 's',
       describe:
-        'sign Public ssh key with private key. (Needs THEO_PRIVATE_KEY and THEO_PRIVATE_KEY_PASSPHRASE env variable or -c and -p / -i)',
+        'sign Public ssh key with private key. (Needs THEO_PRIVATE_KEY env (or -c) and THEO_PRIVATE_KEY_PASSPHRASE env (or -p / -i))',
       boolean: true
     })
     .option('certificate', {
@@ -59,6 +59,11 @@ exports.builder = yargs => {
       describe: 'read passphrase for private key from stdin',
       boolean: true
     })
+    .option('signature', {
+      alias: 'g',
+      describe: "Public ssh key' signature",
+      type: 'string'
+    })
     .demandOption(['key']);
 };
 
@@ -68,6 +73,11 @@ exports.handler = async argv => {
     let private_key;
     let private_key_path;
     let passphrase;
+    if (argv.sign && argv.signature) {
+      const e = new Error('--sign and --signature are mutually exclusive');
+      outputError(e);
+      process.exit(1);
+    }
     if (argv.sign) {
       if (argv.certificate) {
         private_key_path = argv.certificate;
@@ -93,6 +103,21 @@ exports.handler = async argv => {
         process.exit(11);
       }
     }
+    if (argv.signature) {
+      console.log('typeof argv.signature', typeof argv.signature);
+      if (typeof argv.key !== typeof argv.signature) {
+        const e = new Error('When using --signature number of keys and signatures must be the same');
+        outputError(e);
+        process.exit(1);
+      }
+      if (typeof argv.key !== 'string') {
+        if (argv.signature.length !== argv.key.length) {
+          const e = new Error('When using --signature number of keys and signatures must be the same');
+          outputError(e);
+          process.exit(1);
+        }
+      }
+    }
     let public_keys;
     if (argv.key) {
       if (typeof argv.key === 'string') {
@@ -107,7 +132,6 @@ exports.handler = async argv => {
     }
     if (argv.sign) {
       payload.keys = [];
-
       let signer;
       try {
         signer = new Signer(private_key, passphrase);
@@ -127,9 +151,18 @@ exports.handler = async argv => {
           process.exit(13);
         }
       });
+    } else if (argv.signature) {
+      payload.keys = [];
+      public_keys.forEach((public_key, i) => {
+        payload.keys.push({
+          key: public_key,
+          signature: argv.signature[i]
+        });
+      });
     } else {
       payload.keys = public_keys;
     }
+    console.log(payload);
     const account = await post('/accounts/' + argv.account + '/keys', payload);
     outputJson(account);
   } catch (err) {
