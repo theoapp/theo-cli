@@ -1,5 +1,5 @@
-import Signer from '../libs/rsaUtils';
-import { readFile } from '../libs/fileUtils';
+import Signer from '../src/libs/rsaUtils';
+import { readFile } from '../src/libs/fileUtils';
 import assert from 'assert';
 import path from 'path';
 
