@@ -48,6 +48,6 @@ exports.handler = async argv => {
     const ret = await post(url, payload);
     outputJson(ret);
   } catch (err) {
-    outputError(err);
+    await outputError(err);
   }
 };
