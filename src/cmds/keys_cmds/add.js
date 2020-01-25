@@ -60,7 +60,7 @@ const checkSSHPublicKeys = public_keys => {
 };
 
 const checkSSHPublicKey = keyPub => {
-  sshpk.parseKey(keyPub, 'ssh');
+  sshpk.parseKey(keyPub);
 };
 
 exports.command = 'add <account> [options]';
