@@ -1,5 +1,5 @@
 import { get } from '../../libs/httpUtils';
-import { outputError, outputJson } from '../../libs/stringUtils';
+import { outputError, outputJson, outputTable } from '../../libs/stringUtils';
 
 exports.command = 'search [options]';
 exports.desc = 'Check accounts by permissions';
@@ -17,12 +17,22 @@ exports.builder = yargs => {
       demand: true,
       type: 'string'
     })
+    .option('format', {
+      alias: 'f',
+      describe: 'Format (json/table)',
+      type: 'string'
+    })
     .demandOption(['host', 'user']);
 };
 exports.handler = async argv => {
+  const format = process.env.FORMAT || argv.format;
   try {
     const authorized_keys = await get('/permissions/' + argv.host + '/' + argv.user, { Accept: 'application/json' });
-    outputJson(authorized_keys);
+    if (format && format === 'json') {
+      outputJson(authorized_keys);
+    } else {
+      outputTable(authorized_keys);
+    }
   } catch (err) {
     outputError(err);
   }

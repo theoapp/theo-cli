@@ -1,5 +1,5 @@
 import { get } from '../../libs/httpUtils';
-import { outputError, outputJson } from '../../libs/stringUtils';
+import { outputError, outputJson, outputPaginableTable } from '../../libs/stringUtils';
 
 exports.command = 'list';
 exports.desc = 'List accounts';
@@ -14,11 +14,17 @@ exports.builder = yargs => {
       alias: 'o',
       describe: 'Offset of the query',
       type: 'number'
+    })
+    .option('format', {
+      alias: 'f',
+      describe: 'Format (json/table)',
+      type: 'string'
     });
 };
 exports.handler = async argv => {
   try {
     const { limit, offset } = argv;
+    const format = process.env.FORMAT || argv.format;
     let query = '';
     if (limit && offset) {
       query = `?limit=${limit}&offset=${offset}`;
@@ -28,8 +34,12 @@ exports.handler = async argv => {
       query = `?offset=${offset}`;
     }
     const accounts = await get('/accounts' + query);
-    outputJson(accounts);
+    if (format && format === 'json') {
+      outputJson(accounts);
+    } else {
+      outputPaginableTable(accounts);
+    }
   } catch (err) {
-    outputError(err);
+    await outputError(err);
   }
 };

@@ -15,6 +15,7 @@
   "author": "Michele <michele@azzolari.it> (macno)",
   "license": "Apache-2.0",
   "dependencies": {
+    "cli-table": "^0.3.1",
     "dotenv": "^6.2.0",
     "node-fetch": "^2.6.0",
     "sshpk": "^1.16.1",
