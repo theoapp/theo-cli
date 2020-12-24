@@ -1,5 +1,6 @@
 import { get } from '../../libs/httpUtils';
-import { outputError, outputJson, outputTable } from '../../libs/stringUtils';
+import { buildTable, outputError, outputJson, outputTable } from '../../libs/stringUtils';
+import { renderSSHOptions } from '../../libs/sshOptionsUtils';
 
 exports.command = 'search [options]';
 exports.desc = 'Check accounts by permissions';
@@ -31,9 +32,21 @@ exports.handler = async argv => {
     if (format && format === 'json') {
       outputJson(authorized_keys);
     } else {
-      outputTable(authorized_keys);
+      console.log(
+        buildTable(
+          authorized_keys.map(d => {
+            return {
+              id: d.id,
+              email: d.email,
+              user: d.user,
+              host: d.host,
+              'SSH options': d.ssh_options ? renderSSHOptions(d.ssh_options) : ''
+            };
+          })
+        )
+      );
     }
   } catch (err) {
-    outputError(err);
+    await outputError(err);
   }
 };
