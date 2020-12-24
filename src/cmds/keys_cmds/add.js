@@ -99,27 +99,34 @@ exports.builder = yargs => {
       describe: "Public ssh key' signature",
       type: 'string'
     })
+    .option('ssh-options', {
+      alias: 'o',
+      describe: 'SSH options',
+      demand: false,
+      type: 'string'
+    })
     .demandOption(['key']);
 };
 
 exports.handler = async argv => {
+  const { sshOptions, sign, signature, certificate } = argv;
   try {
     const payload = {};
     let private_key;
     let private_key_path;
     let passphrase;
-    if (argv.sign && argv.signature) {
+    if (sign && signature) {
       const e = new Error('--sign and --signature are mutually exclusive');
-      outputError(e);
+      await outputError(e);
       process.exit(1);
     }
-    if (argv.sign) {
-      if (argv.certificate) {
-        private_key_path = argv.certificate;
+    if (sign) {
+      if (certificate) {
+        private_key_path = certificate;
       } else {
         if (!process.env.THEO_PRIVATE_KEY) {
           const e = new Error('Asked to sign but no -c or THEO_PRIVATE_KEY env provided');
-          outputError(e);
+          await outputError(e);
           process.exit(1);
         }
         private_key_path = process.env.THEO_PRIVATE_KEY;
@@ -134,21 +141,21 @@ exports.handler = async argv => {
       try {
         private_key = await readFile(private_key_path);
       } catch (e) {
-        outputError(e);
+        await outputError(e);
         process.exit(11);
       }
     }
-    if (argv.signature) {
-      console.log('typeof argv.signature', typeof argv.signature);
-      if (typeof argv.key !== typeof argv.signature) {
+    if (signature) {
+      console.log('typeof signature', typeof signature);
+      if (typeof argv.key !== typeof signature) {
         const e = new Error('When using --signature number of keys and signatures must be the same');
-        outputError(e);
+        await outputError(e);
         process.exit(1);
       }
       if (typeof argv.key !== 'string') {
-        if (argv.signature.length !== argv.key.length) {
+        if (signature.length !== argv.key.length) {
           const e = new Error('When using --signature number of keys and signatures must be the same');
-          outputError(e);
+          await outputError(e);
           process.exit(1);
         }
       }
@@ -162,32 +169,49 @@ exports.handler = async argv => {
       }
     } else {
       const e = new Error('At least specify 1 public ssh key');
-      outputError(e);
+      await outputError(e);
       process.exit(1);
     }
     try {
       checkSSHPublicKeys(public_keys);
     } catch (e) {
-      outputError(e);
+      await outputError(e);
       process.exit(1);
     }
 
-    if (argv.sign) {
+    if (sign) {
       payload.keys = signSSHPublicKeys(public_keys, private_key, passphrase);
-    } else if (argv.signature) {
+    } else if (signature) {
       payload.keys = [];
       public_keys.forEach((public_key, i) => {
         payload.keys.push({
           key: public_key,
-          signature: argv.signature[i]
+          signature: signature[i]
         });
       });
     } else {
       payload.keys = public_keys;
     }
+    if (sshOptions) {
+      try {
+        const ssh_options = JSON.parse(sshOptions);
+        payload.keys = payload.keys.map(k => {
+          if (typeof k === 'string') {
+            k = {
+              key: k
+            };
+          }
+          k.ssh_options = ssh_options;
+          return k;
+        });
+      } catch (e) {
+        console.error('Invalid ssh_options, it must be valid JSON', e);
+        process.exit(2);
+      }
+    }
     const account = await post('/accounts/' + argv.account + '/keys', payload);
     outputJson(account);
   } catch (err) {
-    outputError(err);
+    await outputError(err);
   }
 };
