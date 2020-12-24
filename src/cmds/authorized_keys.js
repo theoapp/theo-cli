@@ -25,20 +25,27 @@ exports.builder = yargs => {
       demand: false,
       boolean: true
     })
+    .option('fingerprint', {
+      alias: 'f',
+      describe: 'Send public SSH fingerprint',
+      demand: false,
+      type: 'string'
+    })
     .demandOption(['host', 'user']);
 };
 exports.handler = async argv => {
+  const { host, user, fingerprint, json } = argv;
   try {
     const authorized_keys = await get(
-      '/authorized_keys/' + argv.host + '/' + argv.user,
-      argv.json ? { Accept: 'application/json' } : undefined
+      `/authorized_keys/${host}/${user}${fingerprint ? `?f=${fingerprint}` : ''}`,
+      json ? { Accept: 'application/json' } : undefined
     );
-    if (argv.json) {
+    if (json) {
       outputJson(authorized_keys);
     } else {
       console.log(authorized_keys);
     }
-  } catch (err) {
-    outputError(err);
+  } catch (e) {
+    outputError(err).catch(() => {});
   }
 };
