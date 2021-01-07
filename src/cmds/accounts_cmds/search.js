@@ -29,7 +29,7 @@ exports.builder = yargs => {
 exports.handler = async argv => {
   try {
     const { name, email, limit, offset } = argv;
-    let query = {};
+    const query = {};
     if (limit) {
       query.limit = limit;
     }

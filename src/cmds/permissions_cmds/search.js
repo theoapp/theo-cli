@@ -1,5 +1,5 @@
 import { get } from '../../libs/httpUtils';
-import { buildTable, outputError, outputJson, outputTable } from '../../libs/stringUtils';
+import { buildTable, outputError, outputJson } from '../../libs/stringUtils';
 import { renderSSHOptions } from '../../libs/sshOptionsUtils';
 
 exports.command = 'search [options]';

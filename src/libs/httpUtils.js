@@ -31,13 +31,7 @@ const execute = async (method, path, data, contentType, headers) => {
     headers['Content-Type'] = contentType;
     fetchOpts.body = data;
   }
-  let response;
-  try {
-    response = await fetch(buildUrl(path), fetchOpts);
-  } catch (ex) {
-    // Low level error: timeouts
-    throw ex;
-  }
+  const response = await fetch(buildUrl(path), fetchOpts);
   if (response) {
     if (response.status === 204) {
       return true;
@@ -58,11 +52,6 @@ const execute = async (method, path, data, contentType, headers) => {
     }
     if (response.status >= 400) {
       // Our fault..
-      // Session expired?
-      if (response.status === 401) {
-        // Force logout..
-        // But I need dispatch
-      }
       if (resContentLength > 0) {
         const json = await _parseJsonBody(retContentType, response);
         if (json === false) {
@@ -81,6 +70,8 @@ const execute = async (method, path, data, contentType, headers) => {
       return response.text();
     }
     return json;
+  } else {
+    throw new Error('Unable to talk to server');
   }
 };
 
