@@ -1,4 +1,4 @@
-name: release to docker hub
+name: release to npm
 
 on:
   push:
