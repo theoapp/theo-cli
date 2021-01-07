@@ -11,6 +11,9 @@
     "start:dev": "babel-node src/main.js",
     "build": "babel -D src -d build",
     "build:dev": "babel -D --watch src --out-dir build",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src",
+    "preversion": "npm run lint && npm run test",
     "test": "mocha tests/*.test.js"
   },
   "author": "Michele <michele@azzolari.it> (macno)",
