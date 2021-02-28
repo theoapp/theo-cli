@@ -18,7 +18,7 @@ const getStripedLine = len => {
   return str + '+';
 };
 
-const dateKeys = ['expire_at', 'created_at', 'updated_at'];
+const dateKeys = ['expire_at', 'created_at', 'updated_at', 'last_used_at'];
 
 export const outputVerticalTable = (obj, formatter) => {
   const table = new Table();

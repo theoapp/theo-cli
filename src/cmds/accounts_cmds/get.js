@@ -27,6 +27,7 @@ exports.handler = async argv => {
                 fingerprint: d.fingerprint,
                 signed: !!d.public_key_sig,
                 'SSH options': d.ssh_options ? renderSSHOptions(d.ssh_options) : '',
+                last_used_at: d.last_used_at,
                 created_at: d.created_at
               };
             })
