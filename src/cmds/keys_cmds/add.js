@@ -1,7 +1,7 @@
 import { post } from '../../libs/httpUtils';
 import { outputError, outputJson } from '../../libs/stringUtils';
 import { readFile } from '../../libs/fileUtils';
-import Signer from '../../libs/rsaUtils';
+import Signer from '../../libs/signer';
 import readline from 'readline';
 import { Writable } from 'stream';
 import sshpk from 'sshpk';
