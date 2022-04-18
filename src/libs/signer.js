@@ -9,10 +9,7 @@ class Signer {
   }
 
   sign(data) {
-    return crypto
-      .createSign('SHA256')
-      .update(data)
-      .sign(this.private_key, 'hex');
+    return crypto.sign(null, Buffer.from(data), this.private_key).toString('hex');
   }
 }
 
