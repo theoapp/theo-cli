@@ -1,13 +1,13 @@
-import Signer from '../src/libs/rsaUtils';
+import Signer from '../src/libs/signer';
 import { readFile } from '../src/libs/fileUtils';
 import assert from 'assert';
 import path from 'path';
 
+const private_eddsa_key_path = './eddsa.pem';
 const private_key_path = './private.pem';
 const passphrase = 'theoTest';
-let private_key;
 
-const controlKeys = [
+const controlKeysRSA = [
   {
     public_key:
       'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDmrOppl3/fJ0FQIArew6359EayhKpZPIk8GjWHzIAtWBASFrxg27tSR1KdKSHEr2KZOu5bUKNJbTutHFAeNE8TgbyazzwuoWPcne8vP4C1EqalNoIaEadISjR6FmacZm+ik5bf7/EO/vl/gREfWnZESpfXg9fKZE/WxY/SroL4FJS8xqjoPDm0XXPsCgmMghctvaa91ZOI/cX51CwmcP52fhnW2+ulET5UYHuGWkTocZOPAVdvSqv1KgieScxSxQTmCyVvYPylRolvKS9qokKnzK0GVFlThKBSXcb33lxkQhTVVSM/B/UFRvcf0Q+OTxUeB9PcRVEVl9SjGPJhyz/pIerJhYi1qiNG+llv1bA+O8cLgltieFJdmAmI3COyqrgtFrtAeU3WnUws2RkDiM1jH8r1dqg2JcELpxykAp4uktHsO0gGonrSdtJxjZwXf437g+8fteLSHxWpDp/z8WV2wXaAcGGtokJ6kiW3FOXddpjd0IT7rGOAag8dXvq45CFLnnHOwPfp9gNi6SHS32VyOBZ46pCv0cRlqBS2rEZ8dtfP969RR+TPdlQOFu7ELFHWnvST7vEeQLHFZfrhLODA091UV2dF1bXy+gcYZGX4qmd/Ea1Ov0fgQwLxE9ExMqHYnVQtHHUw/XJsAlqo8IIxUoEd9sDwv1ymCbFgi7tBKQ== theo@laptop',
@@ -16,24 +16,21 @@ const controlKeys = [
   }
 ];
 
-describe('Test signature', function() {
-  before(function() {
-    return new Promise(async (resolve, reject) => {
-      readFile(path.join(__dirname, private_key_path))
-        .then(data => {
-          private_key = data;
-          resolve();
-        })
-        .catch(e => {
-          reject(e);
-        });
-    });
-  });
+const controlKeysEDDSA = [
+  {
+    public_key:
+      'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDmrOppl3/fJ0FQIArew6359EayhKpZPIk8GjWHzIAtWBASFrxg27tSR1KdKSHEr2KZOu5bUKNJbTutHFAeNE8TgbyazzwuoWPcne8vP4C1EqalNoIaEadISjR6FmacZm+ik5bf7/EO/vl/gREfWnZESpfXg9fKZE/WxY/SroL4FJS8xqjoPDm0XXPsCgmMghctvaa91ZOI/cX51CwmcP52fhnW2+ulET5UYHuGWkTocZOPAVdvSqv1KgieScxSxQTmCyVvYPylRolvKS9qokKnzK0GVFlThKBSXcb33lxkQhTVVSM/B/UFRvcf0Q+OTxUeB9PcRVEVl9SjGPJhyz/pIerJhYi1qiNG+llv1bA+O8cLgltieFJdmAmI3COyqrgtFrtAeU3WnUws2RkDiM1jH8r1dqg2JcELpxykAp4uktHsO0gGonrSdtJxjZwXf437g+8fteLSHxWpDp/z8WV2wXaAcGGtokJ6kiW3FOXddpjd0IT7rGOAag8dXvq45CFLnnHOwPfp9gNi6SHS32VyOBZ46pCv0cRlqBS2rEZ8dtfP969RR+TPdlQOFu7ELFHWnvST7vEeQLHFZfrhLODA091UV2dF1bXy+gcYZGX4qmd/Ea1Ov0fgQwLxE9ExMqHYnVQtHHUw/XJsAlqo8IIxUoEd9sDwv1ymCbFgi7tBKQ== theo@laptop',
+    signature:
+      'f08dc409a2d8293ea32ec4b30709cda1bffcf783606b98900bbeb7ce597868cf8ee7427f947c14eea8c7fb7022f82adf242a4fac33d053aafaedcbbdab9a4c03'
+  }
+];
 
-  describe('Signer should be instantiated and sign correctly', function() {
+describe('Test signature', function() {
+  describe('Signer should be instantiated and sign correctly (RSA)', function() {
     let signer;
-    it('should be instantiated', function() {
+    it('should be instantiated', async function() {
       try {
+        const private_key = await readFile(path.join(__dirname, private_key_path));
         signer = new Signer(private_key, passphrase);
         assert.strictEqual(typeof signer, 'object');
       } catch (err) {
@@ -41,9 +38,28 @@ describe('Test signature', function() {
       }
     });
     it('should sign correctly', function() {
-      for (let i = 0; i < controlKeys.length; i++) {
-        const signature = signer.sign(controlKeys[i].public_key);
-        assert.strictEqual(signature, controlKeys[i].signature);
+      for (let i = 0; i < controlKeysRSA.length; i++) {
+        const signature = signer.sign(controlKeysRSA[i].public_key);
+        assert.strictEqual(signature, controlKeysRSA[i].signature);
+      }
+    });
+  });
+
+  describe('Signer should be instantiated and sign correctly (EdDSA)', function() {
+    let signer;
+    it('should be instantiated', async function() {
+      try {
+        const private_key = await readFile(path.join(__dirname, private_eddsa_key_path));
+        signer = new Signer(private_key, passphrase);
+        assert.strictEqual(typeof signer, 'object');
+      } catch (err) {
+        assert.strictEqual(null, err);
+      }
+    });
+    it('should sign correctly', function() {
+      for (let i = 0; i < controlKeysEDDSA.length; i++) {
+        const signature = signer.sign(controlKeysEDDSA[i].public_key);
+        assert.strictEqual(signature, controlKeysEDDSA[i].signature);
       }
     });
   });
